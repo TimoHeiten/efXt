@@ -10,7 +10,7 @@ using Xunit;
 
 namespace tests
 {
-    public class QueryTests : IDisposable
+    public class QueryTests : IAsyncDisposable
     {
         private static string connectionString => "Filename=:memory:";
         private readonly SqliteConnection connection;
@@ -31,21 +31,6 @@ namespace tests
             evaluatorDbContext.Database.EnsureCreated();
         }
 
-        [Fact]
-        public void Resolve_QueryBuilder_for_all_Types_with_IhasId_works()
-        {
-            // Arrange
-            var queryFactory = scope.ServiceProvider.GetRequiredService<IQueryBuilderFactory>();
-
-            // Act
-            var entityQueryBuilder = queryFactory.Resolve<Entity, int>();
-            var dependentQueryBuilder = queryFactory.Resolve<Dependent, int>();
-            
-            // Assert
-            Assert.NotNull(entityQueryBuilder);
-            Assert.NotNull(dependentQueryBuilder);
-        }
-
         [Theory]
         [MemberData(nameof(MutationCalls))]
         public async Task MutateDatabase(Func<IUnitOfWork, Task> mutation, Func<TestDbContext, Task> assertion)
@@ -54,45 +39,13 @@ namespace tests
         private async Task Mutate(Func<IUnitOfWork, Task> mutation, Func<TestDbContext, Task> assertion)
         {
             // Arrange
-            var commands = scope.ServiceProvider.GetRequiredService<ICommands>();
-            var unitOfWork = commands.GetUnitOfWork();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
             // Act
             await mutation(unitOfWork);
 
             // Assert
             await assertion(this.evaluatorDbContext);
-        }
-
-        [Fact]
-        public async Task Full_Integration_with_insert_and_query()
-        {
-            // Arrange
-            var commands = scope.ServiceProvider.GetRequiredService<ICommands>();
-            var unitOfWork = commands.GetUnitOfWork();
-            var e = await Insert(unitOfWork);
-            var queryBuilderFactory = scope.ServiceProvider.GetRequiredService<IQueryBuilderFactory>();
-            var queryBuilder = queryBuilderFactory.Resolve<Entity, int>();
-
-            // Act
-            var result = await queryBuilder.SelectWithId(e.Id)
-                                           .Include(x => x.Dependent)
-                                           .Create()
-                                           .PrjectIntoAsync
-                                           (
-                                               x => new 
-                                               {
-                                                    EntityId = x.Id, 
-                                                    DependentId = x.Dependent.Id, 
-                                                    ContentCombined = $"{x.Content} - {x.Dependent.Content}"
-                                               }
-                                            );
-
-            // Assert
-            Assert.Equal(e.Id, result.EntityId);
-            Assert.Equal(e.Dependent.Id, result.DependentId);
-            Assert.StartsWith(e.Content, result.ContentCombined);
-            Assert.EndsWith($"{e.Dependent.Content}", result.ContentCombined);
         }
 
         public static IEnumerable<object[]> MutationCalls => 
@@ -111,7 +64,7 @@ namespace tests
                         {
                             var e = await Insert(unit); 
                             e.Content = "updated";
-                            unit.Update<Entity, int>(e);
+                            unit.Update<Entity>(e);
                             await unit.SaveAsync();
                         }),
                     new Func<TestDbContext, Task>(async dbContext => 
@@ -126,7 +79,7 @@ namespace tests
                     new Func<IUnitOfWork, Task>(async unit => 
                         {
                             var e = await Insert(unit);
-                            unit.Delete<Entity, int>(e);
+                            unit.Delete<Entity>(e);
                             await unit.SaveAsync();
                         }),
                     new Func<TestDbContext, Task>(async dbContext => 
@@ -143,7 +96,7 @@ namespace tests
         private static async Task<Entity> Insert(IUnitOfWork unitOfWork)
         {
             var e = new Entity { Content = "42", Dependent = new Dependent { Content = 42}};
-            unitOfWork.Add<Entity, int>(e);
+            unitOfWork.Add<Entity>(e);
             await unitOfWork.SaveAsync();
             return e;
         }
@@ -155,8 +108,8 @@ namespace tests
             (
                 async u => {
                     var d = new Dependent { Id = 1, Content = 42 };
-                    u.Add<Dependent, int>(d);
-                    u.RollbackOne<Dependent, int>(d);
+                    u.Add<Dependent>(d);
+                    u.RollbackOne<Dependent>(d, other => other.Id == d.Id);
                     await u.SaveAsync();
                 },
                 async db => 
@@ -175,8 +128,8 @@ namespace tests
                 async u => {
                     Func<int, Dependent> factory = i => new Dependent { Id = i, Content = i };
                     var d = new Dependent { Id = 11, Content = 42 };
-                    u.Add<Dependent, int>(d, Enumerable.Range(0, 10).Select(i => factory(i)).ToArray());
-                    u.RollBack();
+                    u.Add<Dependent>(d, Enumerable.Range(0, 10).Select(i => factory(i)).ToArray());
+                    u.RollBackAll();
                     await u.SaveAsync();
                 },
                 async db => 
@@ -187,9 +140,9 @@ namespace tests
             );
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            scope.Dispose();
+            await (scope as IAsyncDisposable).DisposeAsync();
         }
     }
 }

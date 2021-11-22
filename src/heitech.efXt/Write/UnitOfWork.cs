@@ -2,110 +2,74 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace heitech.efXt.Write
 {
-    internal class UnitOfWork : IUnitOfWork, ICommands
+    internal class UnitOfWork : IUnitOfWork
     {
         private readonly DbContext context;
-        private IDbContextTransaction activeTransaction;
         public UnitOfWork(DbContext context)
             => this.context = context;
 
-        public void Add<T, I>(T one, params T[] more)
-            where T : class, IHasId<I>
-            where I : IEquatable<I>
+        public void Add<T>(T one, params T[] more)
+            where T : class
         {
             context.Add(one);
             if (more.Any())
-            {
                 context.AddRange(more);
-            }
         }
 
-        public void Delete<T, I>(T one, params T[] more)
-            where T : class, IHasId<I>
-            where I : IEquatable<I>
+        public void Delete<T>(T one, params T[] more)
+            where T : class
         {
             context.Remove(one);
             if (more.Any())
                 context.RemoveRange(more);
         }
 
-        public void Update<T, I>(T one, params T[] more)
-            where T : class, IHasId<I>
-            where I : IEquatable<I>
+        public void Update<T>(T one, params T[] more)
+           where T : class
         {
             context.Update(one);
             if (more.Any())
                 context.UpdateRange(more);
         }
 
-        public void RollbackOne<T, I>(T entity)
-            where T : class, IHasId<I>
-            where I : IEquatable<I>
+        public void RollbackOne<T>(T entity, Func<T, bool> predicate)
+           where T : class
         {
             var firstOrDefault = context.ChangeTracker
                                         .Entries()
                                         .Where(x => x.Entity is T)
-                                        .FirstOrDefault(x => ((T)x.Entity).Id.Equals(entity.Id));
+                                        .FirstOrDefault(x => predicate(((T)x.Entity)));
 
-            firstOrDefault.State = EntityState.Unchanged;
+            RollbackState(firstOrDefault);
         }
 
-        public void RollBack()
+        public void RollBackAll()
         {
             context.ChangeTracker
                    .Entries()
                    .ToList()
-                   .ForEach
-                   (
-                       x => 
-                       {
-                           if (x.State == EntityState.Added)
-                           {
-                                x.State = EntityState.Detached;
-                           }
-                           else
-                           {
-                               x.State = EntityState.Unchanged;
-                           }
-                       }
-                   );
+                   .ForEach(RollbackState);
+        }
+
+        private static void RollbackState(EntityEntry  entry)
+        {
+            if (entry == null)
+                return;
+
+            EntityState state = entry.State;
+            entry.State = state == EntityState.Added 
+                          ? EntityState.Detached 
+                          : EntityState.Unchanged;
         }
 
         public async Task SaveAsync()
-        {
-            try
-            {
-                await context.SaveChangesAsync();
-                await activeTransaction?.CommitAsync();
-                
-            }
-            catch (System.Exception)
-            {
-                if (activeTransaction != null)
-                    await activeTransaction.RollbackAsync();
-            }
-            finally
-            {
-                if (activeTransaction != null)
-                    await activeTransaction.DisposeAsync();
+            => await context.SaveChangesAsync();
 
-                activeTransaction = null;
-            }
-        }
-
-        public ICommands WithTransaction()
-        {
-            this.activeTransaction = this.context.Database.BeginTransaction();
-            return this;
-        }
-
-        public IUnitOfWork GetUnitOfWork()
-        {
-            return this;
-        }
+        public async ValueTask DisposeAsync()
+            => await SaveAsync();
     }
 }

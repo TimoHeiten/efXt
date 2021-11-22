@@ -3,25 +3,21 @@ using System.Threading.Tasks;
 
 namespace heitech.efXt
 {
-    public interface IUnitOfWork
+    public interface IUnitOfWork : IAsyncDisposable
     {
-        void Add<T, I>(T one, params T[] more)
-            where T : class, IHasId<I>
-            where I : IEquatable<I>;
+        void Add<T>(T one, params T[] more)
+            where T : class;
 
-        void Update<T, I>(T one, params T[] more)
-            where T : class, IHasId<I>
-            where I : IEquatable<I>;
+        void Update<T>(T one, params T[] more)
+            where T : class;
 
-        void Delete<T, I>(T one, params T[] more)
-            where T : class, IHasId<I>
-            where I : IEquatable<I>;
+        void Delete<T>(T one, params T[] more)
+            where T : class;
 
-        void RollbackOne<T, I>(T entity)
-            where T : class, IHasId<I>
-            where I : IEquatable<I>;
+        void RollbackOne<T>(T entity, Func<T, bool> predicate)
+            where T : class;
 
-        void RollBack();
+        void RollBackAll();
         Task SaveAsync();
     }
 }

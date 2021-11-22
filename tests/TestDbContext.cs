@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using heitech.efXt;
 using Microsoft.EntityFrameworkCore;
 
 namespace tests
@@ -18,7 +17,7 @@ namespace tests
         }
     }
 
-    public class Entity : IHasId<int>
+    public class Entity 
     {
         public int Id { get; set; }
         public string Content { get; set; }
@@ -26,7 +25,7 @@ namespace tests
 
     }
 
-    public class Dependent : IHasId<int>
+    public class Dependent 
     {
         public int Id { get; set; }
         public int Content { get; set; }

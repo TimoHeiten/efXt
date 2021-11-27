@@ -4,15 +4,21 @@ using System.Threading.Tasks;
 
 namespace heitech.efXt
 {
+    ///<summary>
+    /// Abstraction for DataAccess with generic and Specification methods
+    ///</summary>
     public interface IRepository<TEntity, TId>
             where TEntity : class
     {
+        /// <summary>
+        /// for special cases operate directly on the IQueryable
+        /// </summary>
         IQueryable<TEntity> AsQueryable();
 
         Task<TEntity> GetByIdAsync(TId id);
         Task<TEntity> GetByIdAsync(ISpecification<TEntity> specification);
 
         Task<IReadOnlyList<TEntity>> GetAllAsync();
-        Task<IReadOnlyList<TEntity>> GetAllByIdAsync(ISpecification<TEntity> specification);
+        Task<IReadOnlyList<TEntity>> GetAllBySpecificationAsync(ISpecification<TEntity> specification);
     }
 }

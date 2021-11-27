@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return collection.Scan
             (
-                x => x.FromExecutingAssembly().AddClasses(c => c.AssignableTo(typeof(IRepository<,>)))
+                x => x.FromApplicationDependencies().AddClasses(c => c.AssignableTo(typeof(IRepository<,>)))
             );
         }
     }

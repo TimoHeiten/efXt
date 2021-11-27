@@ -171,9 +171,4 @@ public class Query : IFirstTenEntitiesQuery
 }
  ```
 
- Example for Specified Query (testable)
-  * Specification pattern for repeatable queries
-  * UnitOfWork and Rollback for better control of the ChangeTracking  
-* Make it easy to register the dbContext and let the abstractions be injected so you can test your code without repetitive mocks for Repositories and such
 
-Examples tbd.

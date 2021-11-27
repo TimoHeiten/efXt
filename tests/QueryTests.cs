@@ -48,8 +48,8 @@ namespace tests
             await assertion(this.evaluatorDbContext);
         }
 
-        public static IEnumerable<object[]> MutationCalls => 
-            new []
+        public static IEnumerable<object[]> MutationCalls =>
+            new[]
             {
                 // Insert data
                 new object[]
@@ -60,14 +60,14 @@ namespace tests
                 // Insert and update
                 new object[]
                 {
-                    new Func<IUnitOfWork, Task>(async unit => 
+                    new Func<IUnitOfWork, Task>(async unit =>
                         {
-                            var e = await Insert(unit); 
+                            var e = await Insert(unit);
                             e.Content = "updated";
                             unit.Update<Entity>(e);
                             await unit.SaveAsync();
                         }),
-                    new Func<TestDbContext, Task>(async dbContext => 
+                    new Func<TestDbContext, Task>(async dbContext =>
                         {
                             var updated = await dbContext.Set<Entity>().SingleAsync();
                             Assert.Equal("updated", updated.Content);
@@ -76,13 +76,13 @@ namespace tests
                 // Insert and delete
                 new object[]
                 {
-                    new Func<IUnitOfWork, Task>(async unit => 
+                    new Func<IUnitOfWork, Task>(async unit =>
                         {
                             var e = await Insert(unit);
                             unit.Delete<Entity>(e);
                             await unit.SaveAsync();
                         }),
-                    new Func<TestDbContext, Task>(async dbContext => 
+                    new Func<TestDbContext, Task>(async dbContext =>
                         {
                             var result = await dbContext.Set<Entity>().ToListAsync();
                             Assert.Empty(result);
@@ -95,7 +95,7 @@ namespace tests
 
         private static async Task<Entity> Insert(IUnitOfWork unitOfWork)
         {
-            var e = new Entity { Content = "42", Dependent = new Dependent { Content = 42}};
+            var e = new Entity { Content = "42", Dependent = new Dependent { Content = 42 } };
             unitOfWork.Add<Entity>(e);
             await unitOfWork.SaveAsync();
             return e;
@@ -106,13 +106,14 @@ namespace tests
         {
             await Mutate
             (
-                async u => {
+                async u =>
+                {
                     var d = new Dependent { Id = 1, Content = 42 };
                     u.Add<Dependent>(d);
                     u.RollbackOne<Dependent>(d, other => other.Id == d.Id);
                     await u.SaveAsync();
                 },
-                async db => 
+                async db =>
                 {
                     var dependents = await db.Set<Dependent>().ToListAsync();
                     Assert.Empty(dependents);
@@ -125,14 +126,15 @@ namespace tests
         {
             await Mutate
             (
-                async u => {
+                async u =>
+                {
                     Func<int, Dependent> factory = i => new Dependent { Id = i, Content = i };
                     var d = new Dependent { Id = 11, Content = 42 };
-                    u.Add<Dependent>(d, Enumerable.Range(0, 10).Select(i => factory(i)).ToArray());
+                    u.AddMany<Dependent>(Enumerable.Range(0, 10).Select(i => factory(i)).Concat(new[] { d }).ToArray());
                     u.RollBackAll();
                     await u.SaveAsync();
                 },
-                async db => 
+                async db =>
                 {
                     var dependents = await db.Set<Dependent>().ToListAsync();
                     Assert.Empty(dependents);

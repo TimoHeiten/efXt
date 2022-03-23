@@ -1,3 +1,4 @@
+using heitech.efXt.Read;
 using heitech.efXt.Write;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,5 +11,12 @@ namespace heitech.efXt.Components
         ///</summary>
         public static IUnitOfWork CreateUnitOfWork(this DbContext dbContext)
             => new UnitOfWork(dbContext);
+
+        ///<summary>
+        /// Create a new Instance of a generic ReadRepository
+        ///</summary>
+        public static IReadRepository<TEntity, TId> CreateReadRepository<TEntity, TId>(this DbContext dbContext)
+            where TEntity : class
+            => new ReadRepository<TEntity, TId>(dbContext);
     }
 }

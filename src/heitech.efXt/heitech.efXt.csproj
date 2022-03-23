@@ -3,12 +3,12 @@
     <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>heitech</Authors>
-    <Description>Generally useful and common abstractions for the use of EF core in Asp.Net core</Description>
+    <Description>Generally useful and common abstractions for the use of EF core in .NET 6</Description>
     <PackageProjectUrl>https://github.com/TimoHeiten/efXt</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/TimoHeiten/efXt</RepositoryUrl>
     <PackageTags>ef-core</PackageTags>
-    <PackageReleaseNotes>initial release</PackageReleaseNotes>
+    <PackageReleaseNotes>second release</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>

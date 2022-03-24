@@ -15,7 +15,7 @@ namespace heitech.efXt.Components
         ///<summary>
         /// Create a new Instance of a generic ReadRepository
         ///</summary>
-        public static IReadRepository<TEntity> CreateReadRepository<TEntity, TId>(this DbContext dbContext)
+        public static IReadRepository<TEntity> CreateReadRepository<TEntity>(this DbContext dbContext)
             where TEntity : class
             => new ReadRepository<TEntity>(dbContext);
     }

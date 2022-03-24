@@ -186,14 +186,15 @@ public interface IFirstTenEntitiesQuery
 
 public class Query : IFirstTenEntitiesQuery
 {
-    private readonly DbContext _context;
+    private readonly IRepository<Entity, int> _repository;
 
     public Query(DbContext repository)
-        => _context = repository;
+        => _repository = repository;
 
     public async Task<IReadOnlyList<Entity>> ExecuteAsync()
-        => await _context.Set<Entity>()
+        => await _repository.AsQueryable()
                             .Take(10)
+                            // may also use Include and other operators here.
                             .ToListAsync();
 }
  ```

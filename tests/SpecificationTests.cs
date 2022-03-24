@@ -21,8 +21,10 @@ namespace tests
             var singleResult = await spec.RunSingleAsync(source);
 
             // Then
-            listResult.Should().HaveCount(7);
+            listResult.Should().HaveCount(7)
+                      .And.OnlyContain(x => x.Name == "Mimi");
             singleResult.Should().NotBeNull();
+            singleResult.Name.Should().Be("Mimi");
         }
 
         private class TextContainer

@@ -7,7 +7,7 @@ namespace heitech.efXt.Read
     ///<summary>
     /// Use this generic ReadRepository to access Specification specific Repository capabilities
     ///</summary>
-    public class ReadRepository<TEntity, TId> : IReadRepository<TEntity, TId>
+    public class ReadRepository<TEntity> : IReadRepository<TEntity>
         where TEntity : class
     {
         protected DbContext Context { get; }

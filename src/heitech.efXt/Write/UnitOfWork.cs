@@ -13,23 +13,25 @@ namespace heitech.efXt.Write
         public UnitOfWork(DbContext context)
             => _context = context;
 
+        private DbSet<T> Set<T>() where T : class  => _context.Set<T>();
+
         public void Add<T>(T one) where T : class
-            => _context.Set<T>().Add(one);
+            => Set<T>().Add(one);
 
         public void Delete<T>(T one) where T : class
-            => _context.Set<T>().Remove(one);
+            => Set<T>().Remove(one);
 
         public void Update<T>(T one) where T : class
-            => _context.Set<T>().Update(one);
+            => Set<T>().Update(one);
 
         public void AddMany<T>(IEnumerable<T> many) where T : class
-            => _context.Set<T>().AddRange(many);
+            => Set<T>().AddRange(many);
 
         public void UpdateMany<T>(IEnumerable<T> many) where T : class
-            => _context.Set<T>().UpdateRange(many);
+            => Set<T>().UpdateRange(many);
 
         public void DeleteMany<T>(IEnumerable<T> many) where T : class
-            => _context.Set<T>().RemoveRange(many);
+            => Set<T>().RemoveRange(many);
 
         public void RollbackOne<T>(T entity, Func<T, bool> predicate)
            where T : class

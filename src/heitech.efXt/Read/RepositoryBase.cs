@@ -7,7 +7,7 @@ namespace heitech.efXt.Read
     ///<summary>
     /// A combinaton of the two available Repository types: IReadRepository & IRepository. So you can make use of the full Specification pattern and simpler Queries (like GetById etc.)
     ///</summary>
-    public abstract class RepositoryBase<TEntity, TId> : GenericRepository<TEntity, TId>, IReadRepository<TEntity, TId>
+    public abstract class RepositoryBase<TEntity, TId> : GenericRepository<TEntity, TId>, IReadRepository<TEntity>
         where TEntity : class
     {
         public RepositoryBase(DbContext dbContext) 

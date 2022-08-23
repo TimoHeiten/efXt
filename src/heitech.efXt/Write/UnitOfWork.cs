@@ -33,7 +33,7 @@ namespace heitech.efXt.Write
         public void DeleteMany<T>(IEnumerable<T> many) where T : class
             => Set<T>().RemoveRange(many);
 
-        public void RollbackOne<T>(T entity, Func<T, bool> predicate)
+        public void RollbackOne<T>(Func<T, bool> predicate)
            where T : class
         {
             var firstOrDefault = _context.ChangeTracker
@@ -66,7 +66,31 @@ namespace heitech.efXt.Write
         public async Task SaveAsync()
             => await _context.SaveChangesAsync();
 
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
         public async ValueTask DisposeAsync()
+        {
+            await DisposeAsyncCore().ConfigureAwait(false);
+            Dispose(disposing: false);
+            #pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
+            GC.SuppressFinalize(this);
+            #pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing) 
+                return;
+
+            _context.SaveChanges();
+            _context?.Dispose();
+        }
+
+        protected virtual async ValueTask DisposeAsyncCore()
         {
             await SaveAsync();
             await _context.DisposeAsync();

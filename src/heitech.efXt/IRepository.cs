@@ -11,12 +11,12 @@ namespace heitech.efXt
             where TEntity : class
     {
         /// <summary>
-        /// for special cases operate directly on the IQueryable
+        /// For special cases operate directly on the IQueryable or create an IQueryObject
         /// </summary>
         IQueryable<TEntity> AsQueryable();
 
         Task<TEntity> GetByIdAsync(TId id);
-        Task<TEntity> GetByIdAsync(ISpecification<TEntity> specification);
+        Task<TEntity> GetByAsync(ISpecification<TEntity> specification);
 
         Task<IReadOnlyList<TEntity>> GetAllAsync();
         Task<IReadOnlyList<TEntity>> GetAllBySpecificationAsync(ISpecification<TEntity> specification);

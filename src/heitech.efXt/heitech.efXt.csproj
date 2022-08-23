@@ -8,9 +8,10 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/TimoHeiten/efXt</RepositoryUrl>
     <PackageTags>ef-core</PackageTags>
-    <PackageReleaseNotes>second release</PackageReleaseNotes>
+    <PackageReleaseNotes>third release</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageVersion>1.0.1</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\..\README.md">

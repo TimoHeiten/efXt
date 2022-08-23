@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using heitech.efXt;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -12,23 +11,10 @@ namespace tests
 {
     public class QueryTests : IAsyncDisposable
     {
-        private static string connectionString => "Filename=:memory:";
-        private readonly SqliteConnection connection;
-        private readonly IServiceProvider provider;
-        private IServiceScope scope;
-        private TestDbContext evaluatorDbContext;
+        private readonly TestContext _testContext;
         public QueryTests()
         {
-            this.connection = new SqliteConnection(connectionString);
-            connection.Open();
-
-            var collection = new ServiceCollection();
-            collection.RegisterEfAbstraction<TestDbContext>(options => options.UseSqlite(connection));
-
-            provider = collection.BuildServiceProvider();
-            scope = provider.CreateScope();
-            evaluatorDbContext = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            evaluatorDbContext.Database.EnsureCreated();
+            _testContext = new TestContext();
         }
 
         [Theory]
@@ -39,13 +25,13 @@ namespace tests
         private async Task Mutate(Func<IUnitOfWork, Task> mutation, Func<TestDbContext, Task> assertion)
         {
             // Arrange
-            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var unitOfWork = _testContext.Provider.GetRequiredService<IUnitOfWork>();
 
             // Act
             await mutation(unitOfWork);
 
             // Assert
-            await assertion(this.evaluatorDbContext);
+            await assertion(_testContext.GetDbContext());
         }
 
         public static IEnumerable<object[]> MutationCalls =>
@@ -110,7 +96,7 @@ namespace tests
                 {
                     var d = new Dependent { Id = 1, Content = 42 };
                     u.Add<Dependent>(d);
-                    u.RollbackOne<Dependent>(d, other => other.Id == d.Id);
+                    u.RollbackOne<Dependent>(other => other.Id == d.Id);
                     await u.SaveAsync();
                 },
                 async db =>
@@ -144,7 +130,8 @@ namespace tests
 
         public async ValueTask DisposeAsync()
         {
-            await (scope as IAsyncDisposable).DisposeAsync();
+            _testContext.Dispose();
+            await ValueTask.CompletedTask;
         }
     }
 }

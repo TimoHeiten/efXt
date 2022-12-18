@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace heitech.efXt.Write
 {
-    internal class UnitOfWork : IUnitOfWork
+    internal sealed class UnitOfWork : IUnitOfWork
     {
         private readonly DbContext _context;
         public UnitOfWork(DbContext context)
@@ -57,7 +58,7 @@ namespace heitech.efXt.Write
             if (entry == null)
                 return;
 
-            EntityState state = entry.State;
+            var state = entry.State;
             entry.State = state == EntityState.Added 
                           ? EntityState.Detached 
                           : EntityState.Unchanged;
@@ -65,35 +66,5 @@ namespace heitech.efXt.Write
 
         public async Task SaveAsync()
             => await _context.SaveChangesAsync();
-
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await DisposeAsyncCore().ConfigureAwait(false);
-            Dispose(disposing: false);
-            #pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
-            GC.SuppressFinalize(this);
-            #pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing) 
-                return;
-
-            _context.SaveChanges();
-            _context?.Dispose();
-        }
-
-        protected virtual async ValueTask DisposeAsyncCore()
-        {
-            await SaveAsync();
-            await _context.DisposeAsync();
-        }
     }
 }

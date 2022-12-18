@@ -8,7 +8,7 @@ namespace heitech.efXt
     /// Represents all Commands to interact with the database and have a 
     /// Transaction scope in the Application before committing the changes to the database
     /// </summary>
-    public interface IUnitOfWork : IAsyncDisposable, IDisposable
+    public interface IUnitOfWork
     {
         void Add<T>(T one)
             where T : class;

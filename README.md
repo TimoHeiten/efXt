@@ -3,7 +3,7 @@
 Aim of this library:
 * Use Ef Core with common functionality so you dont have to implement it over and over again.
   * IRepository<TEntity> interface
-  * Specification pattern for repeatable 
+  * Specification pattern for repeatable and testable query parameters
   * UnitOfWork and Rollback for better control of the ChangeTracking 
 * Make it easy to register the dbContext and setup code via the Microsoft.Extensions.DependencyInjection
 * There is also an abstract class for the Repositories (GenericRepository<TEntity, TId>) which implements the most basic functions already
@@ -15,7 +15,7 @@ Aim of this library:
 /// Represents all Commands to interact with the database and have a 
 /// Transaction scope in the Application before committing the changes to the database
 /// </summary>
-public interface IUnitOfWork : IAsyncDisposable
+public interface IUnitOfWork
 {
     void Add<T>(T one)
         where T : class;
@@ -198,5 +198,3 @@ public class Query : IFirstTenEntitiesQuery
                             .ToListAsync();
 }
  ```
-
-
